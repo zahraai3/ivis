@@ -1,12 +1,8 @@
-// ============================================================
-// main.dart — ملف التطبيق الرئيسي
-// التطبيق: Codey — نظام مراقبة السيروم الوريدي (IV Monitor)
-// الفكرة: الممرضة تدخل بياناتها وبيانات السيروم، والتطبيق
-//         يتواصل مع جهاز ESP عبر WiFi ويعرض نسبة السيروم المتبقية
-// ============================================================
-
 // import 'dart:convert'; // لتحويل البيانات من/إلى JSON عند التواصل مع الجهاز
 import 'package:flutter/material.dart'; // مكتبة Flutter الأساسية للواجهة
+import 'package:intl_phone_field/intl_phone_field.dart';
+import 'theme/app_theme.dart'; //الملف الخاص بثيم التطبيق بشكل عام
+import 'package:google_fonts/google_fonts.dart';
 // import 'package:http/http.dart' as http; // لإرسال طلبات HTTP للجهاز (ESP)
 
 // ── نقطة البداية ──────────────────────────────────────────
@@ -22,8 +18,9 @@ class CodeyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false, // إخفاء شريط DEBUG الأحمر
+      theme: AppTheme.themeData, //اضافه الثيم
       home: CodeySetupScreen(), // الشاشة الأولى عند فتح التطبيق
     );
   }
@@ -149,6 +146,7 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
   // المستخدمة فعلياً هي _appLogoutToIntroOnly
   void _logout() {
     nurseNameCtrl.clear();
+    nurseFullPhone = '';
     nursePhoneCtrl.text = '+964';
     roomCtrl.clear();
     _lastSetupKey = '';
@@ -182,9 +180,10 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
   // ونقدر نقرأ/نمسح القيمة منه في أي وقت
   final TextEditingController nurseNameCtrl = TextEditingController();
   final TextEditingController nursePhoneCtrl =
-  TextEditingController(text: '+964'); // رقم العراق افتراضي
+  TextEditingController();
   final TextEditingController roomCtrl = TextEditingController();
 
+  String nurseFullPhone = '';
   // ── دالة عرض رسالة مؤقتة (SnackBar) ───────────────────
   // تظهر في أسفل الشاشة لثواني ثم تختفي
   // نتحقق من mounted عشان ما نعرضها لو الشاشة اتدمرت
@@ -865,108 +864,123 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
   Widget _introPage(BoxConstraints c) {
     return Stack(
       children: [
-        // خلفية بيضاء
-        const Positioned.fill(
-          child: ColoredBox(color: Colors.white),
+         Positioned.fill(
+          child: ColoredBox(color: AppColors.background),
         ),
-        // صورة كيس السيروم في الخلفية (يمين أسفل)
-        // IgnorePointer عشان ما تستقبل اللمسات وتتعارض مع حقول الإدخال
         Positioned(
-          right: -30,
-          bottom: -20,
+          right: 40,
+          bottom: 420,
           child: IgnorePointer(
             child: Image.asset(
-              'assets/images/ivbag.jpg',
-              width: c.maxWidth * 0.95,
+              'assets/images/nurse.jpg',
+              width: c.maxWidth * 0.8,
               fit: BoxFit.contain,
             ),
           ),
         ),
-        // حقول الإدخال وزر المتابعة
         Align(
-          alignment: Alignment.centerLeft,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 24),
-            child: SizedBox(
-              width: c.maxWidth * 0.85,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _IntroField(controller: nurseNameCtrl, hint: 'Nurse Name'),
-                  const SizedBox(height: 18),
-                  _IntroField(
-                    controller: nursePhoneCtrl,
-                    hint: '+964XXXXXXXXXX',
-                    keyboardType: TextInputType.phone,
+          alignment: Alignment.bottomCenter,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 6),
+                Text(
+                  'Enter your details to continue',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 18
                   ),
-                  const SizedBox(height: 18),
-                  SizedBox(
-                    width: 260,
-                    height: 54,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF005BA7),
-                        shape: const StadiumBorder(),
-                        elevation: 6,
-                      ),
-                      onPressed: () async {
-                        final name = nurseNameCtrl.text.trim();
-                        final phone = nursePhoneCtrl.text.trim();
+                ),
 
-                        // تحقق إن الاسم مو فاضي
-                        if (name.isEmpty) {
-                          _showMsg('Please fill name');
-                          return;
-                        }
-
-                        // الكود الحقيقي لإرسال بيانات الممرضة للجهاز (معلّق):
-                        // try {
-                        //   final uri = Uri.parse('$espBaseUrl/intro');
-                        //   final res = await http.post(
-                        //     uri,
-                        //     headers: {'Content-Type': 'application/json'},
-                        //     body: jsonEncode({'name': name, 'phone': phone}),
-                        //   );
-                        //   if (res.statusCode == 200) { ... } else { ... }
-                        // } catch (e) { _showMsg('Error: $e'); }
-
-                        _showMsg('Saved ✅');
-
-                        // _lastRunning = false → انتقل لإعداد جديد (step -2)
-                        // _lastRunning = true  → يعني الجهاز كان شغّال قبل
-                        //                        (مثلاً الممرضة خرجت وعادت)
-                        //                        فنرجعها مباشرة للمراقبة (step 5)
-                        _lastRunning = false;
-
-                        if (!mounted) return;
-
-                        if (_lastRunning == true) {
-                          setState(() => step = 5); // رجوع للمراقبة
-                          if (!_running) _startLiveUpdates();
-                        } else {
-                          setState(() => step = -2); // انتقل لشاشة الغرفة
-                        }
-                      },
-                      child: const Text(
-                        'Continue',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
+                const SizedBox(height: 20),
+                _IntroField(controller: nurseNameCtrl, hint: 'Nurse Name'),
+                const SizedBox(height: 14),
+                IntlPhoneField(
+                  controller: nursePhoneCtrl,
+                  initialCountryCode: 'IQ', // العراق افتراضي
+                  decoration: InputDecoration(
+                    hintText: 'Phone Number',
+                    hintStyle: TextStyle(
+                    color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppDimensions.radiusMD),
+                    borderSide: const BorderSide(color: Color(0xFF1D2B71), width: 2),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppDimensions.radiusMD),
+                    borderSide: const BorderSide(color: AppColors.borderFocused, width: 2),
                     ),
                   ),
-                ],
-              ),
+                  onChanged: (phone) {
+                    nurseFullPhone = phone.completeNumber; // +9647701234567
+                    // phone.completeNumber يعطيك الرقم كامل مع المفتاح
+                    // مثلاً: +9647701234567
+                  },
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  height: AppDimensions.buttonHeightLG,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      shape: const StadiumBorder(),
+                      elevation: 0,
+                    ),
+                    onPressed: () async {
+                      final name = nurseNameCtrl.text.trim();
+                      final phone = nursePhoneCtrl.text.trim();
+
+                      if (name.isEmpty) {
+                        _showMsg('Please fill name');
+                        return;
+                      }
+
+                      // الكود الحقيقي لإرسال بيانات الممرضة للجهاز (معلّق):
+                      // try {
+                      //   final uri = Uri.parse('$espBaseUrl/intro');
+                      //   final res = await http.post(
+                      //     uri,
+                      //     headers: {'Content-Type': 'application/json'},
+                      //     body: jsonEncode({'name': name, 'phone': phone}),
+                      //   );
+                      //   if (res.statusCode == 200) { ... } else { ... }
+                      // } catch (e) { _showMsg('Error: $e'); }
+
+                      _showMsg('Saved ✅');
+
+                      // _lastRunning = false → انتقل لإعداد جديد (step -2)
+                      // _lastRunning = true  → يعني الجهاز كان شغّال قبل
+                      //                        (مثلاً الممرضة خرجت وعادت)
+                      //                        فنرجعها مباشرة للمراقبة (step 5)
+                      _lastRunning = false;
+
+                      if (!mounted) return;
+
+                      if (_lastRunning == true) {
+                        setState(() => step = 5);
+                        if (!_running) _startLiveUpdates();
+                      } else {
+                        setState(() => step = -2);
+                      }
+                    },
+                    child: Text('Continue', style: AppTextStyles.buttonLarge),
+                  ),
+                ),
+                const SizedBox(height: 120),
+              ],
             ),
           ),
         ),
       ],
     );
   }
-
   // ============================================================
   // شاشة رقم الغرفة (step -2)
   // ============================================================
