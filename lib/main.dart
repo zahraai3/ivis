@@ -126,14 +126,14 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
 
   // ── متغيرات الاختيارات ──────────────────────────────────
   // تخزن ما اختارته الممرضة في خطوات الإعداد
-  int? selectedCapacityMl;   // السعة المختارة (مثلاً: 500)
-  int? selectedGroupIndex;   // رقم المجموعة في قائمة kFluidGroups (0-6)
-  String? selectedFluid;     // اسم السائل المختار (نص كامل)
+  int? selectedCapacityMl; // السعة المختارة (مثلاً: 500)
+  int? selectedGroupIndex; // رقم المجموعة في قائمة kFluidGroups (0-6)
+  String? selectedFluid; // اسم السائل المختار (نص كامل)
 
   // ── أرقام للإرسال للجهاز ───────────────────────────────
   // الجهاز يفهم أرقام (1,2,3) أسهل من النصوص الطويلة
   int? selectedGroupNum; // رقم المجموعة للجهاز (1-7)
-  int? selectedItemNum;  // رقم السائل داخل المجموعة للجهاز (1-N)
+  int? selectedItemNum; // رقم السائل داخل المجموعة للجهاز (1-N)
 
   // ── مفتاح منع الإرسال المكرر ──────────────────────────
   // نحفظ آخر بيانات أُرسلت، لو نفس البيانات ما نرسل مجدداً
@@ -166,13 +166,13 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
   static const String espBaseUrl = 'http://192.168.4.1';
 
   // ── متغيرات الحالة ──────────────────────────────────────
-  bool _sending = false;   // true = جاري الإرسال للجهاز (نمنع الضغط مرتين)
-  double remaining = 0;    // نسبة السيروم المتبقية % (تتحدث كل ثانية)
-  bool _running = false;   // true = حلقة التحديث التلقائي شغّالة
+  bool _sending = false; // true = جاري الإرسال للجهاز (نمنع الضغط مرتين)
+  double remaining = 0; // نسبة السيروم المتبقية % (تتحدث كل ثانية)
+  bool _running = false; // true = حلقة التحديث التلقائي شغّالة
 
   // ── متغيرات تحذير الـ 10% ──────────────────────────────
-  bool _ack10Shown = false;        // هل أرسلنا تأكيد للجهاز؟ (محفوظ للاستخدام لاحقاً)
-  bool _lastRunning = false;       // آخر حالة للجهاز (شغّال/موقف) — نستخدمه عند الدخول
+  bool _ack10Shown = false; // هل أرسلنا تأكيد للجهاز؟ (محفوظ للاستخدام لاحقاً)
+  bool _lastRunning = false; // آخر حالة للجهاز (شغّال/موقف) — نستخدمه عند الدخول
   bool _alarm10DialogShown = false; // هل ظهر الـ Dialog للممرضة؟ (نمنع تكراره كل ثانية)
 
   // ── حقول الإدخال (Controllers) ─────────────────────────
@@ -184,6 +184,7 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
   final TextEditingController roomCtrl = TextEditingController();
 
   String nurseFullPhone = '';
+
   // ── دالة عرض رسالة مؤقتة (SnackBar) ───────────────────
   // تظهر في أسفل الشاشة لثواني ثم تختفي
   // نتحقق من mounted عشان ما نعرضها لو الشاشة اتدمرت
@@ -253,12 +254,12 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
     // بيانات وهمية للمحاكاة:
     // كل ثانية تنقص remaining بـ 1 (لمحاكاة نزول السيروم)
     final data = <String, dynamic>{
-      'need_setup': false,    // false = مو محتاج إعادة إعداد
-      'reset': false,         // false = مو محتاج إعادة تشغيل
+      'need_setup': false, // false = مو محتاج إعادة إعداد
+      'reset': false, // false = مو محتاج إعادة تشغيل
       'percent': remaining > 0 ? remaining - 1 : 75.0, // ينقص 1% كل ثانية
-      'running': true,        // الجهاز شغّال
+      'running': true, // الجهاز شغّال
       'alarm10_active': false, // مافي تحذير 10% الآن
-      'alarm10_ack': false,   // ما أُرسل تأكيد
+      'alarm10_ack': false, // ما أُرسل تأكيد
     };
 
     // ── تحقق: هل الجهاز يطلب إعادة إعداد؟ ──
@@ -288,8 +289,8 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
 
     // ── تحديث الواجهة بالبيانات الجديدة ──
     setState(() {
-      remaining = percent;       // حدّث نسبة المتبقي
-      _lastRunning = isRunning;  // احفظ حالة الجهاز
+      remaining = percent; // حدّث نسبة المتبقي
+      _lastRunning = isRunning; // احفظ حالة الجهاز
 
       // لو كنا بشاشة الانتظار (4) والجهاز بدأ يشتغل → انتقل للمراقبة (5)
       if (step == 4 && isRunning) {
@@ -333,17 +334,17 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
     // تكرر طالما الدالة ترجع true
     Future.doWhile(() async {
       if (!_running) return false; // أوقف الحلقة
-      await _fetchStatus();        // اجلب البيانات
+      await _fetchStatus(); // اجلب البيانات
       await Future.delayed(const Duration(seconds: 1)); // انتظر ثانية
-      return _running;             // كرر لو _running لا زال true
+      return _running; // كرر لو _running لا زال true
     });
   }
 
   // ── تسجيل الخروج وإعادة لأول شاشة ────────────────────
   // تمسح بيانات الممرضة وتوقف التحديث وترجع لشاشة الدخول
   Future<void> _appLogoutToIntroOnly() async {
-    _running = false;   // أوقف التحديث التلقائي
-    remaining = 0;      // صفّر النسبة
+    _running = false; // أوقف التحديث التلقائي
+    remaining = 0; // صفّر النسبة
 
     // أعد تهيئة متغيرات التحذير
     _alarm10DialogShown = false;
@@ -365,7 +366,6 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
   // يقرر أي Scaffold يعرض حسب قيمة step
   @override
   Widget build(BuildContext context) {
-
     // ── شاشة الدخول: بيضاء بدون gradient ──
     if (step == -1) {
       return Scaffold(
@@ -417,11 +417,7 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
         children: [
           Container(
             decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [bgTop, bgBottom], // من أزرق فاتح لأغمق
-              ),
+              gradient: AppColors.backgroundGradient,
             ),
             child: SafeArea(
               child: Padding(
@@ -445,7 +441,6 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
   // دالة بناء محتوى كل شاشة حسب قيمة step
   // ============================================================
   Widget _buildStep() {
-
     // ── step -1: شاشة تسجيل الدخول ─────────────────────
     // LayoutBuilder يعطينا أبعاد الشاشة عشان نضبط الحجم ديناميكياً
     if (step == -1) {
@@ -465,128 +460,246 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
     if (step == 0) {
       return LayoutBuilder(
         builder: (context, c) {
-          return Column(
-            children: [
-              const SizedBox(height: 10),
-              const _Header(title1: 'SELECT', title2: 'CAPACITY'),
-              const SizedBox(height: 26),
-              // عرض زر لكل حجم متاح
-              ...kCapacities.map(
-                    (cap) => Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: _BigPillButton(
-                    text: cap.label,
-                    onTap: () {
-                      setState(() {
-                        selectedCapacityMl = cap.ml; // احفظ الاختيار
-                        step = 1; // انتقل لاختيار المجموعة
-                      });
-                    },
-                  ),
+          return Container(
+            // خلفية الشاشة بالـ gradient من الثيم
+            decoration: const BoxDecoration(
+              gradient: AppColors.backgroundGradient,
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.screenPaddingH,
+                  vertical: AppDimensions.screenPaddingV,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 140),
+
+                    // ── عنوان الشاشة ──
+                    Text(
+                      'Select Capacity',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.displayMedium.copyWith(
+                        color: AppColors.primary,
+                      ),
+                    ),
+
+                    const SizedBox(height: AppDimensions.spaceSM),
+
+                    // ── وصف مساعد ──
+                    Text(
+                      'Choose the IV bag size',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+
+                    const SizedBox(height: AppDimensions.spaceXL),
+
+                    // ── قائمة أزرار السعة ──
+                    // kCapacities معرّفة في constants — تحتوي 100, 250, 500, 1000 mL
+                    Expanded(
+                      child: ListView(
+                        children: kCapacities.map((cap) =>
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                bottom: AppDimensions.spaceMD,
+                              ),
+                              child: _BigPillButton(
+                                text: cap.label,
+                                onTap: () {
+                                  setState(() {
+                                    selectedCapacityMl = cap.ml;
+                                    step = 1;
+                                  });
+                                },
+                              ),
+                            ),
+                        ).toList(),
+                      ),
+                    ),
+
+                    // ── شريط الأزرار السفلي ──
+                    // showSend: false لأن هاي مو آخر خطوة
+                    _BottomBar(
+                      showBack: true,
+                      showSend: false,
+                      onBack: () => setState(() => step = -2),
+                      onSend: () {},
+                    ),
+
+                  ],
                 ),
               ),
-              const Spacer(),
-              // شعار التطبيق في المنتصف
-              Center(
-                child: Image.asset(
-                  'assets/images/logo.png',
-                  height: 170,
-                  fit: BoxFit.contain,
-                ),
-              ),
-              const Spacer(),
-              _BottomBar(
-                showBack: true,
-                showSend: false,
-                onBack: () => setState(() => step = -2), // ارجع لشاشة الغرفة
-                onSend: () {},
-              ),
-            ],
+            ),
           );
         },
       );
     }
 
-    // ── step 1: اختيار مجموعة السوائل ───────────────────
+    // ── step 1: اختيار مجموعة السوائل ──
     if (step == 1) {
-      return Column(
-        children: [
-          const SizedBox(height: 10),
-          const _Header(title1: 'SELECT', title2: 'GROUP'),
-          const SizedBox(height: 20),
-          Expanded(
-            child: ListView(
+      return Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.backgroundGradient,
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimensions.screenPaddingH,
+              vertical: AppDimensions.screenPaddingV,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // نعرض زر لكل مجموعة من kFluidGroups
-                for (int i = 0; i < kFluidGroups.length; i++)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 14),
-                    child: _BigPillButton(
-                      text: kFluidGroups[i].title,
-                      onTap: () {
-                        setState(() {
-                          selectedGroupIndex = i;     // رقم المجموعة (0-based)
-                          selectedGroupNum = i + 1;   // رقم للجهاز (1-based)
-                          step = 2; // انتقل لاختيار نوع السائل
-                        });
-                      },
-                    ),
+                const SizedBox(height: 45),
+                Text(
+                  'Select Fluid Group',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.displayMedium.copyWith(
+                    color: AppColors.primary,
                   ),
+                ),
+                const SizedBox(height: AppDimensions.spaceSM),
+                Text(
+                  'Choose the fluid category',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: AppDimensions.spaceXL),
+                Expanded(
+                  child: ListView(
+                    children: kFluidGroups
+                        .asMap()
+                        .entries
+                        .map((entry) =>
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            bottom: AppDimensions.spaceMD,
+                          ),
+                          child: _BigPillButton(
+                            text: entry.value.title,
+                            onTap: () {
+                              setState(() {
+                                selectedGroupIndex = entry.key;
+                                selectedGroupNum = entry.key + 1;
+                                step = 2; // انتقل لاختيار نوع السائل
+                              });
+                            },
+                          ),
+                        ),
+                    ).toList(),
+                  ),
+                ),
+                _BottomBar(
+                  showBack: true,
+                  showSend: false,
+                  onBack: () => setState(() => step = 0),
+                  onSend: () {},
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 10),
-          _BottomBar(
-            showBack: true,
-            showSend: false,
-            onBack: () => setState(() => step = 0), // ارجع لاختيار السعة
-            onSend: () {},
-          ),
-        ],
+        ),
       );
     }
-
     // ── step 2: اختيار نوع السائل ───────────────────────
     if (step == 2) {
       // نجيب المجموعة المختارة عشان نعرض أنواعها
       final g = kFluidGroups[selectedGroupIndex ?? 0];
-      return Column(
-        children: [
-          const SizedBox(height: 10),
-          const _Header(title1: 'SELECT', title2: 'FLUID TYPE'),
-          const SizedBox(height: 14),
-          Expanded(
-            child: ListView(
+
+      return Container(
+        // خلفية الشاشة بالـ gradient من الثيم
+        decoration: const BoxDecoration(
+          gradient: AppColors.backgroundGradient,
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimensions.screenPaddingH,
+              vertical: AppDimensions.screenPaddingV,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // نعرض زر لكل نوع سائل داخل المجموعة المختارة
-                for (final item in g.items)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 14),
-                    child: _BigPillButton(
-                      text: item,
-                      onTap: () {
-                        setState(() {
-                          selectedFluid = item;
-                          selectedItemNum = g.items.indexOf(item) + 1; // رقم للجهاز (1-based)
-                          step = 3; // انتقل للملخص
-                        });
-                      },
+
+                SizedBox(height: 80),
+                // ── عنوان الشاشة ──
+                Text(
+                  'Fluid Type',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.displayMedium.copyWith(
+                    color: AppColors.primary,
+                  ),
+                ),
+
+                const SizedBox(height: AppDimensions.spaceSM),
+
+                // ── اسم المجموعة المختارة كـ subtitle ──
+                // يساعد الممرضة تتأكد إنها بالمجموعة الصحيحة
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimensions.spaceMD,
+                    vertical: AppDimensions.spaceSM,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.accentLight,
+                    borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+                  ),
+                  child: Text(
+                    g.title, // عنوان المجموعة المختارة من kFluidGroups
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.labelLarge.copyWith(
+                      color: AppColors.primary,
                     ),
                   ),
+                ),
+
+                const SizedBox(height: AppDimensions.spaceLG),
+
+                // ── قائمة أنواع السوائل داخل المجموعة المختارة ──
+                Expanded(
+                  child: ListView(
+                    children: [
+                      // نعرض زر لكل نوع سائل داخل المجموعة المختارة
+                      for (final item in g.items)
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            bottom: AppDimensions.spaceMD,
+                          ),
+                          child: _BigPillButton(
+                            text: item,
+                            onTap: () {
+                              setState(() {
+                                selectedFluid = item;
+                                selectedItemNum = g.items.indexOf(item) + 1; // رقم للجهاز (1-based)
+                                step = 3; // انتقل للملخص
+                              });
+                            },
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+
+                // ── شريط الأزرار السفلي ──
+                _BottomBar(
+                  showBack: true,
+                  showSend: false,
+                  onBack: () => setState(() => step = 1), // ارجع لاختيار المجموعة
+                  onSend: () {},
+                ),
+
               ],
             ),
           ),
-          const SizedBox(height: 10),
-          _BottomBar(
-            showBack: true,
-            showSend: false,
-            onBack: () => setState(() => step = 1), // ارجع لاختيار المجموعة
-            onSend: () {},
-          ),
-        ],
+        ),
       );
     }
-
     // ── step 3: ملخص الاختيارات قبل الإرسال ─────────────
     if (step == 3) {
       return Column(
@@ -612,7 +725,9 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Group: ${selectedGroupIndex != null ? kFluidGroups[selectedGroupIndex!].title : ''}',
+                  'Group: ${selectedGroupIndex != null
+                      ? kFluidGroups[selectedGroupIndex!].title
+                      : ''}',
                   style: const TextStyle(
                       fontSize: 16, fontWeight: FontWeight.w600),
                 ),
@@ -693,7 +808,6 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
     // ── step 5: شاشة المراقبة الحية ─────────────────────
     // تعرض نسبة السيروم المتبقية % وتتحدث كل ثانية
     if (step == 5) {
-
       // ── دالة تحديد لون المؤشر حسب النسبة ──
       // أحمر: خطر (≤10%) | برتقالي: تحذير (<50%) | أخضر: طبيعي
       Color getColor(double value) {
@@ -817,10 +931,10 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
 
     // البيانات التي سترسل للجهاز بصيغة JSON
     final payload = {
-      'capacity_ml': cap,   // سعة الكيس
+      'capacity_ml': cap, // سعة الكيس
       'group': selectedGroupNum, // رقم المجموعة
-      'item': selectedItemNum,   // رقم السائل داخل المجموعة
-      'room': room,              // رقم الغرفة
+      'item': selectedItemNum, // رقم السائل داخل المجموعة
+      'room': room, // رقم الغرفة
     };
 
     // الكود الحقيقي للإرسال (معلّق - وضع المحاكاة):
@@ -864,7 +978,7 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
   Widget _introPage(BoxConstraints c) {
     return Stack(
       children: [
-         Positioned.fill(
+        Positioned.fill(
           child: ColoredBox(color: AppColors.background),
         ),
         Positioned(
@@ -891,9 +1005,9 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
                   'Enter your details to continue',
                   textAlign: TextAlign.center,
                   style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 18
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 18
                   ),
                 ),
 
@@ -906,16 +1020,20 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
                   decoration: InputDecoration(
                     hintText: 'Phone Number',
                     hintStyle: TextStyle(
-                    color: AppColors.textPrimary,
+                      color: AppColors.textPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                     enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppDimensions.radiusMD),
-                    borderSide: const BorderSide(color: Color(0xFF1D2B71), width: 2),
+                      borderRadius: BorderRadius.circular(
+                          AppDimensions.radiusMD),
+                      borderSide: const BorderSide(
+                          color: Color(0xFF1D2B71), width: 2),
                     ),
                     focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppDimensions.radiusMD),
-                    borderSide: const BorderSide(color: AppColors.borderFocused, width: 2),
+                      borderRadius: BorderRadius.circular(
+                          AppDimensions.radiusMD),
+                      borderSide: const BorderSide(
+                          color: AppColors.borderFocused, width: 2),
                     ),
                   ),
                   onChanged: (phone) {
@@ -981,96 +1099,147 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
       ],
     );
   }
+
   // ============================================================
   // شاشة رقم الغرفة (step -2)
   // ============================================================
   Widget _roomPage(BoxConstraints c) {
-    const Color roomColor = Color(0xFF396B70); // لون مخصص لهذي الشاشة
-
     return Stack(
       children: [
-        // صورة خلفية غرفة المستشفى
+        // خلفية الشاشة — غيّر الرابط لصورتك
         Positioned.fill(
           child: Image.asset(
-            'assets/images/room.jpg',
+            'assets/images/madbg.jpeg',
             fit: BoxFit.cover,
           ),
         ),
-        // طبقة شفافة فوق الصورة لتحسين وضوح النص
+
+        // طبقة داكنة فوق الصورة لتحسين وضوح العناصر
         Positioned.fill(
           child: Container(
-            color: Colors.white.withOpacity(0.12),
+            color: AppColors.textPrimary.withOpacity(0.55),
           ),
         ),
-        Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Room number\ud83e\udd23', // النص + إيموجي مستشفى
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                  color: roomColor,
+
+        // المحتوى الرئيسي في المنتصف
+        Align(
+          alignment: Alignment.center,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimensions.screenPaddingH,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+
+                // أيقونة المستشفى فوق العنوان
+                const Icon(
+                  Icons.local_hospital_rounded,
+                  size: 48,
+                  color: AppColors.borderFocused,
                 ),
-              ),
-              const SizedBox(height: 16),
-              // حقل إدخال رقم الغرفة
-              Container(
-                width: 260,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.25),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: roomColor, width: 2),
+
+                const SizedBox(height: AppDimensions.spaceMD),
+
+                // عنوان الشاشة
+                Text(
+                  'Room Number',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.displayMedium.copyWith(
+                    color: AppColors.textOnPrimary,
+                  ),
                 ),
-                alignment: Alignment.center,
-                child: TextField(
+
+                const SizedBox(height: AppDimensions.spaceSM),
+
+                // وصف مساعد تحت العنوان
+                Text(
+                  'Enter the patient\'s room number to continue',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textOnPrimary.withOpacity(0.75),
+                  ),
+                ),
+
+                const SizedBox(height: AppDimensions.spaceXL),
+
+                // حقل إدخال رقم الغرفة
+                TextField(
                   controller: roomCtrl,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: roomColor,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 20,
+                  keyboardType: TextInputType.number,
+                  autofocus: true,
+                  style: AppTextStyles.headlineLarge.copyWith(
+                    color: AppColors.textOnPrimary,
                   ),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'Enter room',
-                    hintStyle: TextStyle(
-                      color: roomColor,
-                      fontWeight: FontWeight.w700,
+                  decoration: InputDecoration(
+                    hintText: 'e.g. 204',
+                    hintStyle: AppTextStyles.headlineLarge.copyWith(
+                      color: AppColors.textOnPrimary.withOpacity(0.4),
+                    ),
+                    // خلفية شفافة للحقل فوق الصورة
+                    fillColor: AppColors.textOnPrimary.withOpacity(0.1),
+                    filled: true,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                          AppDimensions.radiusMD),
+                      borderSide: BorderSide(
+                        color: AppColors.textOnPrimary.withOpacity(0.3),
+                        width: 1.5,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                          AppDimensions.radiusMD),
+                      borderSide: const BorderSide(
+                        color: AppColors.accent, // سماوي عند التركيز
+                        width: 2,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: 220,
-                height: 52,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: roomColor,
-                    shape: const StadiumBorder(),
-                  ),
-                  onPressed: () {
+
+                const SizedBox(height: AppDimensions.spaceLG),
+
+                // زر المتابعة
+                SizedBox(
+                  height: AppDimensions.buttonHeightLG,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      shape: const StadiumBorder(),
+                      elevation: 0,
+                    ),
+                    onPressed: () {
                     final room = roomCtrl.text.trim();
+
+                    // تحقق إن الحقل مو فاضي
                     if (room.isEmpty) {
-                      _showMsg('Please enter room number');
-                      return;
+                    _showMsg('Please enter room number');
+                    return;
                     }
-                    setState(() => step = 0); // انتقل لاختيار السعة
-                  },
-                  child: const Text(
-                    'Continue',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                    ),
+
+                    // تحقق إن القيمة رقم صحيح (مو حروف)
+                    final roomNum = int.tryParse(room);
+                    if (roomNum == null) {
+                    _showMsg('Room number must be a number');
+                    return;
+                    }
+
+                    // تحقق إن الرقم بين 1 و 500
+                    if (roomNum < 1 || roomNum > 500) {
+                    _showMsg('Room number must be between 1 and 500');
+                    return;
+                    }
+
+                    setState(() => step = 0);
+                    },
+                    child: Text('Continue', style: AppTextStyles.buttonLarge),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ],
