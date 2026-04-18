@@ -4,6 +4,12 @@ import 'package:intl_phone_field/intl_phone_field.dart';
 import 'theme/app_theme.dart'; //الملف الخاص بثيم التطبيق بشكل عام
 import 'package:google_fonts/google_fonts.dart';
 // import 'package:http/http.dart' as http; // لإرسال طلبات HTTP للجهاز (ESP)
+import 'models/capacity_option.dart';
+import 'models/fluid_group.dart';
+import 'data/iv_data.dart';
+import 'widgets/buttons.dart';
+import 'widgets/input_field.dart';
+import 'widgets/header.dart';
 
 // ── نقطة البداية ──────────────────────────────────────────
 void main() {
@@ -25,86 +31,6 @@ class CodeyApp extends StatelessWidget {
     );
   }
 }
-
-// ── موديل خيار السعة ──────────────────────────────────────
-// كلاس بسيط يمثل حجم كيس السيروم (مثلاً: 500 mL)
-// استخدمناه بدل ما نكتب الأرقام مباشرة، عشان الكود يكون أوضح
-class CapacityOption {
-  final int ml; // الحجم بالمليلتر
-  const CapacityOption(this.ml);
-  String get label => '$ml mL'; // النص الي يظهر على الزر (مثلاً: "500 mL")
-}
-
-// ── موديل مجموعة السوائل ──────────────────────────────────
-// كل مجموعة عندها عنوان وقائمة بأنواع السوائل اللي تنتمي لها
-// مثلاً: مجموعة "Dextrose Solutions" تحتوي D5W, D10W, D20W
-class FluidGroup {
-  final String title; // اسم المجموعة
-  final List<String> items; // قائمة أنواع السوائل داخل المجموعة
-  const FluidGroup(this.title, this.items);
-}
-
-// ── البيانات الثابتة: خيارات السعة ────────────────────────
-// قائمة ثابتة بأحجام الأكياس المتاحة في المستشفى
-// الـ const تعني إنها تُحسب مرة وحدة عند تشغيل التطبيق ولا تتغير
-const List<CapacityOption> kCapacities = [
-  CapacityOption(100),
-  CapacityOption(250),
-  CapacityOption(500),
-  CapacityOption(1000),
-];
-
-// ── البيانات الثابتة: مجموعات السوائل الطبية ──────────────
-// قائمة كاملة بكل أنواع السوائل الوريدية المستخدمة في المستشفيات
-// مقسمة لمجموعات طبية منطقية عشان يسهل على الممرضة تلاقي ما تريد
-const List<FluidGroup> kFluidGroups = [
-  // ── مجموعة 1: محاليل الصوديوم كلوريد (الملح) ──
-  FluidGroup('Intravenous Sodium Chloride Solutions', [
-    'Half Normal Saline (0.45% NaCl)', // ملح خفيف، للأطفال وحالات خاصة
-    'Normal Saline (0.9% NaCl)', // الأكثر شيوعاً — ترطيب عام
-    'Hypertonic Saline (3% NaCl)', // ملح مركّز — لحالات تورم الدماغ
-    'Hypertonic Saline (5% NaCl)',
-    'Hypertonic Saline (7.5% NaCl)',
-  ]),
-  // ── مجموعة 2: محاليل رينجر ──
-  FluidGroup('Intravenous Ringer\u2019s Solutions', [
-    "Lactated Ringer's (Hartmann)", // الأشهر — يشبه تركيب بلازما الدم
-    "Acetated Ringer's", // بديل Lactated Ringer's
-    "Lactated Ringer's + Dextrose 5%", // رينجر + سكر
-    "Acetated Ringer's + Dextrose 5%",
-  ]),
-  // ── مجموعة 3: محاليل السكر (Dextrose) ──
-  FluidGroup('Intravenous Dextrose Solutions', [
-    'D5W (Dextrose 5% in Water)', // سكر خفيف — شائع جداً
-    'D10W (Dextrose 10% in Water)', // تغذية وريدية
-    'D20W (Dextrose 20% in Water)', // تغذية مركّزة
-  ]),
-  // ── مجموعة 4: سكر + ملح مع بعض ──
-  FluidGroup('Combined Dextrose and Sodium Chloride Solutions', [
-    'D5 1/2NS (D5 in 0.45% Saline)',
-    'D5NS (D5 in Normal Saline)',
-    'D10NS (D10 in Normal Saline)',
-  ]),
-  // ── مجموعة 5: مانيتول ──
-  FluidGroup('Intravenous Mannitol Solutions', [
-    'Mannitol 5%', // لتخفيف ضغط الدماغ
-    'Mannitol 10%',
-    'Mannitol 15%',
-    'Mannitol 20%',
-  ]),
-  // ── مجموعة 6: محاليل الإلكتروليت المتعددة ──
-  FluidGroup('Intravenous Multiple Electrolyte Solutions', [
-    'Plasma-Lyte A', // بديل متطور عن رينجر
-    'Plasma-Lyte + Dextrose 5%',
-    "Hartmann's",
-  ]),
-  // ── مجموعة 7: محاليل إضافية ──
-  FluidGroup('Additional', [
-    'Dextran 40 10% in Saline', // لتعويض حجم الدم
-    'Dextran 70 6% in Saline',
-    'Hydroxyethyl Starch 6% (HES 6%)', // بديل بلازما الدم
-  ]),
-];
 
 // ============================================================
 // الشاشة الرئيسية — تحتوي كل منطق التطبيق
@@ -388,7 +314,7 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
             Positioned(
               left: 16,
               top: 16,
-              child: _LogoutPill(onTap: _appLogoutToIntroOnly),
+              child: LogoutPill(onTap: _appLogoutToIntroOnly),
             ),
           ],
         ),
@@ -404,7 +330,7 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
             Positioned(
               left: 16,
               top: 16,
-              child: _LogoutPill(onTap: _appLogoutToIntroOnly),
+              child: LogoutPill(onTap: _appLogoutToIntroOnly),
             ),
           ],
         ),
@@ -430,7 +356,7 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
           Positioned(
             left: 16,
             top: 16,
-            child: _LogoutPill(onTap: _appLogoutToIntroOnly),
+            child: LogoutPill(onTap: _appLogoutToIntroOnly),
           ),
         ],
       ),
@@ -507,7 +433,7 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
                               padding: const EdgeInsets.only(
                                 bottom: AppDimensions.spaceMD,
                               ),
-                              child: _BigPillButton(
+                              child: BigPillButton(
                                 text: cap.label,
                                 onTap: () {
                                   setState(() {
@@ -523,7 +449,7 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
 
                     // ── شريط الأزرار السفلي ──
                     // showSend: false لأن هاي مو آخر خطوة
-                    _BottomBar(
+                    BottomBar(
                       showBack: true,
                       showSend: false,
                       onBack: () => setState(() => step = -2),
@@ -581,7 +507,7 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
                           padding: const EdgeInsets.only(
                             bottom: AppDimensions.spaceMD,
                           ),
-                          child: _BigPillButton(
+                          child: BigPillButton(
                             text: entry.value.title,
                             onTap: () {
                               setState(() {
@@ -595,7 +521,7 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
                     ).toList(),
                   ),
                 ),
-                _BottomBar(
+                BottomBar(
                   showBack: true,
                   showSend: false,
                   onBack: () => setState(() => step = 0),
@@ -671,7 +597,7 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
                           padding: const EdgeInsets.only(
                             bottom: AppDimensions.spaceMD,
                           ),
-                          child: _BigPillButton(
+                          child: BigPillButton(
                             text: item,
                             onTap: () {
                               setState(() {
@@ -687,7 +613,7 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
                 ),
 
                 // ── شريط الأزرار السفلي ──
-                _BottomBar(
+                BottomBar(
                   showBack: true,
                   showSend: false,
                   onBack: () => setState(() => step = 1), // ارجع لاختيار المجموعة
@@ -705,7 +631,7 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
       return Column(
         children: [
           const SizedBox(height: 10),
-          const _Header(title1: 'DONE', title2: 'SUMMARY'),
+          const Header(title1: 'DONE', title2: 'SUMMARY'),
           const SizedBox(height: 25),
           // بطاقة بيضاء تعرض ملخص كل ما اختارته الممرضة
           Container(
@@ -748,7 +674,7 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
             ),
           ),
           const Spacer(),
-          _BottomBar(
+          BottomBar(
             showBack: true,
             showSend: true,
             onBack: () => setState(() => step = 2), // ارجع لاختيار السائل
@@ -1012,7 +938,7 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
                 ),
 
                 const SizedBox(height: 20),
-                _IntroField(controller: nurseNameCtrl, hint: 'Nurse Name'),
+                IntroField(controller: nurseNameCtrl, hint: 'Nurse Name'),
                 const SizedBox(height: 14),
                 IntlPhoneField(
                   controller: nursePhoneCtrl,
@@ -1243,265 +1169,6 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
           ),
         ),
       ],
-    );
-  }
-}
-
-// ============================================================
-// Widgets مستقلة (Reusable Components)
-// ============================================================
-
-// ── عنوان الشاشة ─────────────────────────────────────────
-// يعرض سطر من كلمتين — الأولى زرقاء والثانية بيضاء
-// مثال: "SELECT" (أزرق) + "CAPACITY" (أبيض)
-class _Header extends StatelessWidget {
-  final String title1; // الجزء الأزرق
-  final String title2; // الجزء الأبيض
-
-  const _Header({required this.title1, required this.title2});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: RichText(
-        // RichText يسمح لنا بتلوين كل كلمة بشكل مستقل
-        text: TextSpan(
-          style: const TextStyle(fontSize: 26),
-          children: [
-            TextSpan(
-              text: '$title1 ',
-              style: const TextStyle(
-                color: Color(0xFF005BA7),
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            TextSpan(
-              text: title2,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── زر الاختيار الكبير المستدير ──────────────────────────
-// يستخدم في كل شاشات الاختيار (السعة، المجموعة، النوع)
-// Material + InkWell أفضل من ElevatedButton لأنه يعطي تحكم كامل بالشكل
-class _BigPillButton extends StatelessWidget {
-  final String text;       // النص على الزر
-  final VoidCallback onTap; // الدالة التي تُستدعى عند الضغط
-
-  const _BigPillButton({required this.text, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white.withOpacity(0.9),
-      shape: const StadiumBorder(), // شكل بيضاوي/Pill
-      elevation: 2,
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const StadiumBorder(), // تأثير الموجة يتبع الشكل
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
-          child: Center(
-            child: Text(
-              text,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF25406B),
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── شريط الأزرار السفلي ───────────────────────────────────
-// يظهر في أسفل شاشات الإعداد (0-3)
-// يحتوي زر Back (دائماً يسار) + زر Send (في المنتصف، يظهر فقط في step 3)
-class _BottomBar extends StatelessWidget {
-  final bool showBack; // هل نعرض زر Back؟
-  final bool showSend; // هل نعرض زر Send؟
-  final VoidCallback onBack;
-  final VoidCallback onSend;
-
-  const _BottomBar({
-    required this.showBack,
-    required this.showSend,
-    required this.onBack,
-    required this.onSend,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 56,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          if (showBack)
-            Align(
-              alignment: Alignment.centerLeft,
-              child: _BottomBack(onTap: onBack),
-            ),
-          if (showSend)
-            Align(
-              alignment: Alignment.center,
-              child: _SendButton(onTap: onSend),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── زر Back ───────────────────────────────────────────────
-class _BottomBack extends StatelessWidget {
-  final VoidCallback onTap;
-  const _BottomBack({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      shape: const StadiumBorder(),
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const StadiumBorder(),
-        child: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-          child: Text(
-            'Back',
-            style: TextStyle(
-              color: Color(0xFF25406B),
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── زر Send ───────────────────────────────────────────────
-// يظهر فقط في شاشة الملخص (step 3)
-// لونه رمادي عشان يبيّن إنه إجراء نهائي
-class _SendButton extends StatelessWidget {
-  final VoidCallback onTap;
-  const _SendButton({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: const Color(0xFF9E9E9E), // رمادي
-      shape: const StadiumBorder(),
-      elevation: 4,
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const StadiumBorder(),
-        child: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 50, vertical: 14),
-          child: Text(
-            'Send',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── حقل الإدخال في شاشة الدخول ───────────────────────────
-// مخصص للاسم ورقم الهاتف
-// نفصله عن الـ TextField العادي عشان له ستايل موحد ونستخدمه مرتين
-class _IntroField extends StatelessWidget {
-  final TextEditingController controller;
-  final String hint;                        // النص التوضيحي
-  final TextInputType? keyboardType;        // نوع لوحة المفاتيح (اختياري)
-
-  const _IntroField({
-    required this.controller,
-    required this.hint,
-    this.keyboardType,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 56,
-      child: TextField(
-        controller: controller,
-        keyboardType: keyboardType,
-        style: const TextStyle(
-          color: Color(0xFF25406B),
-          fontWeight: FontWeight.w800,
-          fontSize: 18,
-        ),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: const TextStyle(
-            color: Color(0xFF25406B),
-            fontWeight: FontWeight.w700,
-          ),
-          filled: true,
-          fillColor: Colors.transparent,
-          contentPadding:
-          const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: Color(0xFF25406B), width: 2),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: Color(0xFF005BA7), width: 2.5),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── زر Logout العائم ──────────────────────────────────────
-// يظهر في الزاوية العلوية اليسرى في كل الشاشات ما عدا شاشة الدخول
-// Positioned في build() يضعه فوق كل شيء
-class _LogoutPill extends StatelessWidget {
-  final VoidCallback onTap;
-  const _LogoutPill({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      shape: const StadiumBorder(),
-      elevation: 4,
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const StadiumBorder(),
-        child: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-          child: Text(
-            'Logout',
-            style: TextStyle(
-              color: Color(0xFF25406B),
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
