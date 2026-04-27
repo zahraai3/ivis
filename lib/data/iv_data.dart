@@ -1,6 +1,8 @@
 import '../models/capacity_option.dart';
 import '../models/fluid_group.dart';
 
+//data information file
+
 const List<CapacityOption> kCapacities = [
   CapacityOption(100),
   CapacityOption(250),
