@@ -1,6 +1,7 @@
 // import 'dart:convert'; // لتحويل البيانات من/إلى JSON عند التواصل مع الجهاز
 import 'package:flutter/material.dart'; // مكتبة Flutter الأساسية للواجهة
 import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:ivis/screens/intro_screen.dart';
 import 'theme/app_theme.dart'; //الملف الخاص بثيم التطبيق بشكل عام
 import 'package:google_fonts/google_fonts.dart';
 // import 'package:http/http.dart' as http; // لإرسال طلبات HTTP للجهاز (ESP)
@@ -370,8 +371,18 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
     // ── step -1: شاشة تسجيل الدخول ─────────────────────
     // LayoutBuilder يعطينا أبعاد الشاشة عشان نضبط الحجم ديناميكياً
     if (step == -1) {
-      return LayoutBuilder(
-        builder: (context, c) => _introPage(c),
+      return IntroScreen(
+        onContinue: (name, phone) {
+          nurseFullPhone = phone;
+          _showMsg('Saved ✅');
+          _lastRunning = false;
+          if (_lastRunning) {
+            setState(() => step = 5);
+            if (!_running) _startLiveUpdates();
+          } else {
+            setState(() => step = -2);
+          }
+        },
       );
     }
 
@@ -897,135 +908,6 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
       });
     }
   }
-
-  // ============================================================
-  // شاشة تسجيل الدخول (step -1)
-  // ============================================================
-  Widget _introPage(BoxConstraints c) {
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: ColoredBox(color: AppColors.background),
-        ),
-        Positioned(
-          right: 40,
-          bottom: 420,
-          child: IgnorePointer(
-            child: Image.asset(
-              'assets/images/nurse.jpg',
-              width: c.maxWidth * 0.8,
-              fit: BoxFit.contain,
-            ),
-          ),
-        ),
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 6),
-                Text(
-                  'Enter your details to continue',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 18
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-                IntroField(controller: nurseNameCtrl, hint: 'Nurse Name'),
-                const SizedBox(height: 14),
-                IntlPhoneField(
-                  controller: nursePhoneCtrl,
-                  initialCountryCode: 'IQ', // العراق افتراضي
-                  decoration: InputDecoration(
-                    hintText: 'Phone Number',
-                    hintStyle: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(
-                          AppDimensions.radiusMD),
-                      borderSide: const BorderSide(
-                          color: Color(0xFF1D2B71), width: 2),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(
-                          AppDimensions.radiusMD),
-                      borderSide: const BorderSide(
-                          color: AppColors.borderFocused, width: 2),
-                    ),
-                  ),
-                  onChanged: (phone) {
-                    nurseFullPhone = phone.completeNumber; // +9647701234567
-                    // phone.completeNumber يعطيك الرقم كامل مع المفتاح
-                    // مثلاً: +9647701234567
-                  },
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  height: AppDimensions.buttonHeightLG,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      shape: const StadiumBorder(),
-                      elevation: 0,
-                    ),
-                    onPressed: () async {
-                      final name = nurseNameCtrl.text.trim();
-                      final phone = nursePhoneCtrl.text.trim();
-
-                      if (name.isEmpty) {
-                        _showMsg('Please fill name');
-                        return;
-                      }
-
-                      // الكود الحقيقي لإرسال بيانات الممرضة للجهاز (معلّق):
-                      // try {
-                      //   final uri = Uri.parse('$espBaseUrl/intro');
-                      //   final res = await http.post(
-                      //     uri,
-                      //     headers: {'Content-Type': 'application/json'},
-                      //     body: jsonEncode({'name': name, 'phone': phone}),
-                      //   );
-                      //   if (res.statusCode == 200) { ... } else { ... }
-                      // } catch (e) { _showMsg('Error: $e'); }
-
-                      _showMsg('Saved ✅');
-
-                      // _lastRunning = false → انتقل لإعداد جديد (step -2)
-                      // _lastRunning = true  → يعني الجهاز كان شغّال قبل
-                      //                        (مثلاً الممرضة خرجت وعادت)
-                      //                        فنرجعها مباشرة للمراقبة (step 5)
-                      _lastRunning = false;
-
-                      if (!mounted) return;
-
-                      if (_lastRunning == true) {
-                        setState(() => step = 5);
-                        if (!_running) _startLiveUpdates();
-                      } else {
-                        setState(() => step = -2);
-                      }
-                    },
-                    child: Text('Continue', style: AppTextStyles.buttonLarge),
-                  ),
-                ),
-                const SizedBox(height: 120),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   // ============================================================
   // شاشة رقم الغرفة (step -2)
   // ============================================================
