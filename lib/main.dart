@@ -3,6 +3,8 @@ import 'package:flutter/material.dart'; // مكتبة Flutter الأساسية �
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:ivis/screens/intro_screen.dart';
 import 'package:ivis/screens/room_screen.dart';
+import 'package:ivis/screens/setup/capacity_screen.dart';
+import 'package:ivis/screens/setup/group_screen.dart';
 import 'theme/app_theme.dart'; //الملف الخاص بثيم التطبيق بشكل عام
 import 'package:google_fonts/google_fonts.dart';
 // import 'package:http/http.dart' as http; // لإرسال طلبات HTTP للجهاز (ESP)
@@ -395,155 +397,27 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
       );
     }
 
-    // ── step 0: اختيار سعة الكيس ────────────────────────
+    //step 0: capacity choosing
     if (step == 0) {
-      return LayoutBuilder(
-        builder: (context, c) {
-          return Container(
-            // خلفية الشاشة بالـ gradient من الثيم
-            decoration: const BoxDecoration(
-              gradient: AppColors.backgroundGradient,
-            ),
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimensions.screenPaddingH,
-                  vertical: AppDimensions.screenPaddingV,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 140),
-
-                    // ── عنوان الشاشة ──
-                    Text(
-                      'Select Capacity',
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.displayMedium.copyWith(
-                        color: AppColors.primary,
-                      ),
-                    ),
-
-                    const SizedBox(height: AppDimensions.spaceSM),
-
-                    // ── وصف مساعد ──
-                    Text(
-                      'Choose the IV bag size',
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-
-                    const SizedBox(height: AppDimensions.spaceXL),
-
-                    // ── قائمة أزرار السعة ──
-                    // kCapacities معرّفة في constants — تحتوي 100, 250, 500, 1000 mL
-                    Expanded(
-                      child: ListView(
-                        children: kCapacities.map((cap) =>
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                bottom: AppDimensions.spaceMD,
-                              ),
-                              child: BigPillButton(
-                                text: cap.label,
-                                onTap: () {
-                                  setState(() {
-                                    selectedCapacityMl = cap.ml;
-                                    step = 1;
-                                  });
-                                },
-                              ),
-                            ),
-                        ).toList(),
-                      ),
-                    ),
-
-                    // ── شريط الأزرار السفلي ──
-                    // showSend: false لأن هاي مو آخر خطوة
-                    BottomBar(
-                      showBack: true,
-                      showSend: false,
-                      onBack: () => setState(() => step = -2),
-                      onSend: () {},
-                    ),
-
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
+      return CapacityScreen(
+        onSelect: (ml) => setState(() {
+          selectedCapacityMl = ml;
+          step = 1;
+        }),
+        onBack: () => setState(() => step = -2),
+        onLogout: _appLogoutToIntroOnly,
       );
     }
-
-    // ── step 1: اختيار مجموعة السوائل ──
+    //------ step 1: choosing the fluid group
     if (step == 1) {
-      return Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppDimensions.screenPaddingH,
-              vertical: AppDimensions.screenPaddingV,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 45),
-                Text(
-                  'Select Fluid Group',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.displayMedium.copyWith(
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(height: AppDimensions.spaceSM),
-                Text(
-                  'Choose the fluid category',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: AppDimensions.spaceXL),
-                Expanded(
-                  child: ListView(
-                    children: kFluidGroups
-                        .asMap()
-                        .entries
-                        .map((entry) =>
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: AppDimensions.spaceMD,
-                          ),
-                          child: BigPillButton(
-                            text: entry.value.title,
-                            onTap: () {
-                              setState(() {
-                                selectedGroupIndex = entry.key;
-                                selectedGroupNum = entry.key + 1;
-                                step = 2; // انتقل لاختيار نوع السائل
-                              });
-                            },
-                          ),
-                        ),
-                    ).toList(),
-                  ),
-                ),
-                BottomBar(
-                  showBack: true,
-                  showSend: false,
-                  onBack: () => setState(() => step = 0),
-                  onSend: () {},
-                ),
-              ],
-            ),
-          ),
-        ),
+      return GroupScreen(
+        onSelect: (groupIndex) => setState(() {
+          selectedGroupIndex = groupIndex;
+          selectedGroupNum = groupIndex + 1;
+          step = 2;
+        }),
+        onBack: () => setState(() => step = 0),
+        onLogout: _appLogoutToIntroOnly,
       );
     }
     // ── step 2: اختيار نوع السائل ───────────────────────
