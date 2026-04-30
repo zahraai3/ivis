@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart'; // مكتبة Flutter الأساسية للواجهة
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:ivis/screens/intro_screen.dart';
+import 'package:ivis/screens/room_screen.dart';
 import 'theme/app_theme.dart'; //الملف الخاص بثيم التطبيق بشكل عام
 import 'package:google_fonts/google_fonts.dart';
 // import 'package:http/http.dart' as http; // لإرسال طلبات HTTP للجهاز (ESP)
@@ -388,8 +389,9 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
 
     // ── step -2: شاشة رقم الغرفة ────────────────────────
     if (step == -2) {
-      return LayoutBuilder(
-        builder: (context, c) => _roomPage(c),
+      return RoomScreen(
+        onContinue: () => setState(() => step = 0),
+        onLogout: _appLogoutToIntroOnly,
       );
     }
 
@@ -585,7 +587,8 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
                   ),
                   decoration: BoxDecoration(
                     color: AppColors.accentLight,
-                    borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+                    borderRadius: BorderRadius.circular(
+                        AppDimensions.radiusFull),
                   ),
                   child: Text(
                     g.title, // عنوان المجموعة المختارة من kFluidGroups
@@ -613,7 +616,8 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
                             onTap: () {
                               setState(() {
                                 selectedFluid = item;
-                                selectedItemNum = g.items.indexOf(item) + 1; // رقم للجهاز (1-based)
+                                selectedItemNum = g.items.indexOf(item) +
+                                    1; // رقم للجهاز (1-based)
                                 step = 3; // انتقل للملخص
                               });
                             },
@@ -627,7 +631,8 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
                 BottomBar(
                   showBack: true,
                   showSend: false,
-                  onBack: () => setState(() => step = 1), // ارجع لاختيار المجموعة
+                  onBack: () => setState(() => step = 1),
+                  // ارجع لاختيار المجموعة
                   onSend: () {},
                 ),
 
@@ -907,150 +912,5 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
         step = 4; // انتقل لشاشة الانتظار
       });
     }
-  }
-  // ============================================================
-  // شاشة رقم الغرفة (step -2)
-  // ============================================================
-  Widget _roomPage(BoxConstraints c) {
-    return Stack(
-      children: [
-        // خلفية الشاشة — غيّر الرابط لصورتك
-        Positioned.fill(
-          child: Image.asset(
-            'assets/images/madbg.jpeg',
-            fit: BoxFit.cover,
-          ),
-        ),
-
-        // طبقة داكنة فوق الصورة لتحسين وضوح العناصر
-        Positioned.fill(
-          child: Container(
-            color: AppColors.textPrimary.withOpacity(0.55),
-          ),
-        ),
-
-        // المحتوى الرئيسي في المنتصف
-        Align(
-          alignment: Alignment.center,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppDimensions.screenPaddingH,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-
-                // أيقونة المستشفى فوق العنوان
-                const Icon(
-                  Icons.local_hospital_rounded,
-                  size: 48,
-                  color: AppColors.borderFocused,
-                ),
-
-                const SizedBox(height: AppDimensions.spaceMD),
-
-                // عنوان الشاشة
-                Text(
-                  'Room Number',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.displayMedium.copyWith(
-                    color: AppColors.textOnPrimary,
-                  ),
-                ),
-
-                const SizedBox(height: AppDimensions.spaceSM),
-
-                // وصف مساعد تحت العنوان
-                Text(
-                  'Enter the patient\'s room number to continue',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textOnPrimary.withOpacity(0.75),
-                  ),
-                ),
-
-                const SizedBox(height: AppDimensions.spaceXL),
-
-                // حقل إدخال رقم الغرفة
-                TextField(
-                  controller: roomCtrl,
-                  textAlign: TextAlign.center,
-                  keyboardType: TextInputType.number,
-                  autofocus: true,
-                  style: AppTextStyles.headlineLarge.copyWith(
-                    color: AppColors.textOnPrimary,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: 'e.g. 204',
-                    hintStyle: AppTextStyles.headlineLarge.copyWith(
-                      color: AppColors.textOnPrimary.withOpacity(0.4),
-                    ),
-                    // خلفية شفافة للحقل فوق الصورة
-                    fillColor: AppColors.textOnPrimary.withOpacity(0.1),
-                    filled: true,
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(
-                          AppDimensions.radiusMD),
-                      borderSide: BorderSide(
-                        color: AppColors.textOnPrimary.withOpacity(0.3),
-                        width: 1.5,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(
-                          AppDimensions.radiusMD),
-                      borderSide: const BorderSide(
-                        color: AppColors.accent, // سماوي عند التركيز
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: AppDimensions.spaceLG),
-
-                // زر المتابعة
-                SizedBox(
-                  height: AppDimensions.buttonHeightLG,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      shape: const StadiumBorder(),
-                      elevation: 0,
-                    ),
-                    onPressed: () {
-                    final room = roomCtrl.text.trim();
-
-                    // تحقق إن الحقل مو فاضي
-                    if (room.isEmpty) {
-                    _showMsg('Please enter room number');
-                    return;
-                    }
-
-                    // تحقق إن القيمة رقم صحيح (مو حروف)
-                    final roomNum = int.tryParse(room);
-                    if (roomNum == null) {
-                    _showMsg('Room number must be a number');
-                    return;
-                    }
-
-                    // تحقق إن الرقم بين 1 و 500
-                    if (roomNum < 1 || roomNum > 500) {
-                    _showMsg('Room number must be between 1 and 500');
-                    return;
-                    }
-
-                    setState(() => step = 0);
-                    },
-                    child: Text('Continue', style: AppTextStyles.buttonLarge),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
   }
 }
