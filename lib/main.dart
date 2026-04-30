@@ -7,6 +7,7 @@ import 'package:ivis/screens/setup/capacity_screen.dart';
 import 'package:ivis/screens/setup/fluid_screen.dart';
 import 'package:ivis/screens/setup/group_screen.dart';
 import 'package:ivis/screens/setup/summary_screen.dart';
+import 'package:ivis/screens/waiting_screen.dart';
 import 'theme/app_theme.dart'; //الملف الخاص بثيم التطبيق بشكل عام
 import 'package:google_fonts/google_fonts.dart';
 // import 'package:http/http.dart' as http; // لإرسال طلبات HTTP للجهاز (ESP)
@@ -454,44 +455,9 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
     // نبدأ التحديث التلقائي هنا — لما الجهاز يبدأ يرسل running=true
     // سينتقل تلقائياً لـ step 5
     if (step == 4) {
-      if (!_running) _startLiveUpdates(); // ابدأ التحديث لو ما بدأ بعد
-
-      return Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/nnnn.jpg',
-              fit: BoxFit.cover,
-            ),
-          ),
-          Positioned.fill(
-            child: Container(
-              color: Colors.white.withOpacity(0.25), // طبقة شفافة فوق الصورة
-            ),
-          ),
-          // رسالة الانتظار في أسفل الشاشة
-          Align(
-            alignment: const Alignment(0, 0.75),
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 22),
-              padding:
-              const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.88),
-                borderRadius: BorderRadius.circular(22),
-              ),
-              child: const Text(
-                'Please complete the required data entry.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF25406B),
-                ),
-              ),
-            ),
-          ),
-        ],
+      if (!_running) _startLiveUpdates();
+      return WaitingScreen(
+        onLogout: _appLogoutToIntroOnly,
       );
     }
 
