@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart'; // مكتبة Flutter الأساسية للواجهة
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:ivis/screens/intro_screen.dart';
+import 'package:ivis/screens/monitor_screen.dart';
 import 'package:ivis/screens/room_screen.dart';
 import 'package:ivis/screens/setup/capacity_screen.dart';
 import 'package:ivis/screens/setup/fluid_screen.dart';
@@ -87,12 +88,6 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
       step = -1;
     });
   }
-
-  // ── ألوان الخلفية للشاشات الوسطى (0-3) ────────────────
-  // Gradient من أزرق فاتح لأزرق أغمق
-  static const Color bgTop = Color(0xFFDFF5F4);
-  static const Color bgBottom = Color(0xFF78C9C8);
-
   // ── عنوان جهاز ESP ─────────────────────────────────────
   // الجهاز يعمل كـ Access Point (نقطة WiFi)
   // والتطبيق يتصل فيه مباشرة على هذا الـ IP الثابت
@@ -464,100 +459,12 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
     // ── step 5: شاشة المراقبة الحية ─────────────────────
     // تعرض نسبة السيروم المتبقية % وتتحدث كل ثانية
     if (step == 5) {
-      // ── دالة تحديد لون المؤشر حسب النسبة ──
-      // أحمر: خطر (≤10%) | برتقالي: تحذير (<50%) | أخضر: طبيعي
-      Color getColor(double value) {
-        if (value <= 10) return Colors.red;
-        if (value < 50) return Colors.orange;
-        return Colors.green;
-      }
-
-      Color dynamicColor = getColor(remaining);
-      if (!_running) _startLiveUpdates(); // تأكد إن التحديث شغّال
-
-      return Stack(
-        children: [
-          // صورة الخلفية
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/backgrawnd.jpg',
-              fit: BoxFit.cover,
-            ),
-          ),
-          Positioned.fill(
-            child: Container(color: Colors.white.withOpacity(0.12)),
-          ),
-          // صورة كيس السيروم في الزاوية السفلى اليمنى
-          Positioned(
-            right: -10,
-            bottom: -10,
-            child: Image.asset(
-              'assets/images/iv.png',
-              width: 330,
-              fit: BoxFit.contain,
-            ),
-          ),
-          // البطاقة الرئيسية في المنتصف
-          Align(
-            alignment: Alignment.center,
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 22),
-              padding:
-              const EdgeInsets.symmetric(horizontal: 22, vertical: 22),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.75),
-                borderRadius: BorderRadius.circular(22),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Remaining %',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF20375C),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  // الرقم الكبير — لونه يتغير حسب النسبة
-                  Text(
-                    '${remaining.toStringAsFixed(0)}%',
-                    style: TextStyle(
-                      fontSize: 60,
-                      fontWeight: FontWeight.w900,
-                      color: dynamicColor,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  // شريط التقدم (Progress Bar)
-                  // عرضه الكلي 220px × نسبة المتبقي = العرض الملوّن
-                  Container(
-                    width: 220,
-                    height: 18,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4),
-                      color: Colors.grey.shade300, // الخلفية الرمادية
-                    ),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Container(
-                        width: 220 * (remaining / 100), // العرض الملوّن
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          color: dynamicColor, // نفس لون الرقم
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+      if (!_running) _startLiveUpdates();
+      return MonitorScreen(
+        remaining: remaining,
+        onLogout: _appLogoutToIntroOnly,
       );
     }
-
     // احتياطي: لو step بقيمة غير متوقعة
     return const SizedBox.shrink();
   }
