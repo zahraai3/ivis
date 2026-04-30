@@ -161,14 +161,7 @@ class _RoomScreenState extends State<RoomScreen> {
               ),
             ),
           ),
-          // زر Logout
-          Positioned(
-            left: 16,
-            top: 16,
-            child: SafeArea(
-              child: LogoutPill(onTap: widget.onLogout),
-            ),
-          ),
+
         ],
       ),
     );

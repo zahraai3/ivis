@@ -81,13 +81,6 @@ class GroupScreen extends StatelessWidget {
               ),
             ),
           ),
-          Positioned(
-            left: 16,
-            top: 16,
-            child: SafeArea(
-              child: LogoutPill(onTap: onLogout),
-            ),
-          ),
         ],
       ),
     );

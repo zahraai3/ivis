@@ -4,6 +4,7 @@ import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:ivis/screens/intro_screen.dart';
 import 'package:ivis/screens/room_screen.dart';
 import 'package:ivis/screens/setup/capacity_screen.dart';
+import 'package:ivis/screens/setup/fluid_screen.dart';
 import 'package:ivis/screens/setup/group_screen.dart';
 import 'theme/app_theme.dart'; //الملف الخاص بثيم التطبيق بشكل عام
 import 'package:google_fonts/google_fonts.dart';
@@ -422,100 +423,18 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
     }
     // ── step 2: اختيار نوع السائل ───────────────────────
     if (step == 2) {
-      // نجيب المجموعة المختارة عشان نعرض أنواعها
-      final g = kFluidGroups[selectedGroupIndex ?? 0];
-
-      return Container(
-        // خلفية الشاشة بالـ gradient من الثيم
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppDimensions.screenPaddingH,
-              vertical: AppDimensions.screenPaddingV,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-
-                SizedBox(height: 80),
-                // ── عنوان الشاشة ──
-                Text(
-                  'Fluid Type',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.displayMedium.copyWith(
-                    color: AppColors.primary,
-                  ),
-                ),
-
-                const SizedBox(height: AppDimensions.spaceSM),
-
-                // ── اسم المجموعة المختارة كـ subtitle ──
-                // يساعد الممرضة تتأكد إنها بالمجموعة الصحيحة
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppDimensions.spaceMD,
-                    vertical: AppDimensions.spaceSM,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.accentLight,
-                    borderRadius: BorderRadius.circular(
-                        AppDimensions.radiusFull),
-                  ),
-                  child: Text(
-                    g.title, // عنوان المجموعة المختارة من kFluidGroups
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.labelLarge.copyWith(
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: AppDimensions.spaceLG),
-
-                // ── قائمة أنواع السوائل داخل المجموعة المختارة ──
-                Expanded(
-                  child: ListView(
-                    children: [
-                      // نعرض زر لكل نوع سائل داخل المجموعة المختارة
-                      for (final item in g.items)
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: AppDimensions.spaceMD,
-                          ),
-                          child: BigPillButton(
-                            text: item,
-                            onTap: () {
-                              setState(() {
-                                selectedFluid = item;
-                                selectedItemNum = g.items.indexOf(item) +
-                                    1; // رقم للجهاز (1-based)
-                                step = 3; // انتقل للملخص
-                              });
-                            },
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-
-                // ── شريط الأزرار السفلي ──
-                BottomBar(
-                  showBack: true,
-                  showSend: false,
-                  onBack: () => setState(() => step = 1),
-                  // ارجع لاختيار المجموعة
-                  onSend: () {},
-                ),
-
-              ],
-            ),
-          ),
-        ),
+      return FluidScreen(
+        groupIndex: selectedGroupIndex ?? 0,
+        onSelect: (fluid, itemNum) => setState(() {
+          selectedFluid = fluid;
+          selectedItemNum = itemNum;
+          step = 3;
+        }),
+        onBack: () => setState(() => step = 1),
+        onLogout: _appLogoutToIntroOnly,
       );
     }
+
     // ── step 3: ملخص الاختيارات قبل الإرسال ─────────────
     if (step == 3) {
       return Column(
