@@ -6,6 +6,7 @@ import 'package:ivis/screens/room_screen.dart';
 import 'package:ivis/screens/setup/capacity_screen.dart';
 import 'package:ivis/screens/setup/fluid_screen.dart';
 import 'package:ivis/screens/setup/group_screen.dart';
+import 'package:ivis/screens/setup/summary_screen.dart';
 import 'theme/app_theme.dart'; //الملف الخاص بثيم التطبيق بشكل عام
 import 'package:google_fonts/google_fonts.dart';
 // import 'package:http/http.dart' as http; // لإرسال طلبات HTTP للجهاز (ESP)
@@ -434,63 +435,17 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
         onLogout: _appLogoutToIntroOnly,
       );
     }
-
-    // ── step 3: ملخص الاختيارات قبل الإرسال ─────────────
+    //---step 3: summary screen ───────────────────────────
     if (step == 3) {
-      return Column(
-        children: [
-          const SizedBox(height: 10),
-          const Header(title1: 'DONE', title2: 'SUMMARY'),
-          const SizedBox(height: 25),
-          // بطاقة بيضاء تعرض ملخص كل ما اختارته الممرضة
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.9),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Capacity: ${selectedCapacityMl ?? 0} mL',
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Group: ${selectedGroupIndex != null
-                      ? kFluidGroups[selectedGroupIndex!].title
-                      : ''}',
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Fluid: ${selectedFluid ?? ''}',
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 12),
-                // عنوان الجهاز — مفيد للتشخيص في حالة مشاكل الاتصال
-                Text(
-                  'ESP: $espBaseUrl',
-                  style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w600),
-                ),
-              ],
-            ),
-          ),
-          const Spacer(),
-          BottomBar(
-            showBack: true,
-            showSend: true,
-            onBack: () => setState(() => step = 2), // ارجع لاختيار السائل
-            // لو جاري الإرسال (_sending=true) ما نسمح بضغط Send مجدداً
-            onSend: _sending ? () {} : _sendSetupToEsp,
-          ),
-        ],
+      return SummaryScreen(
+        capacityMl: selectedCapacityMl ?? 0,
+        groupIndex: selectedGroupIndex ?? 0,
+        fluid: selectedFluid ?? '',
+        espBaseUrl: espBaseUrl,
+        isSending: _sending,
+        onSend: _sendSetupToEsp,
+        onBack: () => setState(() => step = 2),
+        onLogout: _appLogoutToIntroOnly,
       );
     }
 
