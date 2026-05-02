@@ -466,7 +466,7 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
       if (!_running) _startLiveUpdates();
       return MonitorScreen(
         remaining: remaining,
-        onLogout: _appLogoutToIntroOnly,
+        onLogout: _appLogoutToIntroOnly, room: '',
       );
     }
     // احتياطي: لو step بقيمة غير متوقعة

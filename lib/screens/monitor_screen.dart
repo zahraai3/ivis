@@ -1,111 +1,213 @@
 // lib/screens/monitor_screen.dart
-// تعرض نسبة السيروم المتبقية % وتتحدث كل ثانية
+// ============================================================
+// شاشة المراقبة الحية — تعرض نسبة السيروم المتبقية %
+// تتحدث كل ثانية من _fetchStatus() في main.dart
+// ============================================================
+
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import '../widgets/buttons.dart';
 
 class MonitorScreen extends StatelessWidget {
-  final double remaining;
+  final double remaining; // نسبة السيروم المتبقية (0-100)
+  final String room;      // رقم الغرفة — يُعرض للتأكيد
   final VoidCallback onLogout;
 
   const MonitorScreen({
     super.key,
     required this.remaining,
+    required this.room,
     required this.onLogout,
   });
 
-  Color _getColor(double value) {
-    if (value <= 10) return Colors.red;
-    if (value < 50) return Colors.orange;
-    return Colors.green;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final color = _getColor(remaining);
+    // ── جلب بيانات الحالة من IVStatusHelper (موجود في app_theme.dart) ──
+    // هذي الدوال تحدد اللون والنص والأيقونة حسب النسبة
+    final color   = IVStatusHelper.percentColor(remaining);
+    final bgColor = IVStatusHelper.percentBgColor(remaining);
+    final label   = IVStatusHelper.percentLabel(remaining);
+    final icon    = IVStatusHelper.percentIcon(remaining);
 
     return Scaffold(
       body: Stack(
         children: [
-          // صورة الخلفية
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/backgrawnd.jpg',
-              fit: BoxFit.cover,
+          // ── خلفية gradient متطابقة مع باقي شاشات التطبيق ──
+          Container(
+            decoration: const BoxDecoration(
+              gradient: AppColors.backgroundGradient,
             ),
           ),
-          Positioned.fill(
-            child: Container(
-              color: Colors.white.withOpacity(0.12),
-            ),
-          ),
-          // صورة كيس السيروم في الزاوية السفلى اليمنى
+
+          // ── صورة كيس السيروم ديكور في الزاوية السفلى ──
           Positioned(
-            right: -10,
-            bottom: -10,
-            child: Image.asset(
-              'assets/images/iv.png',
-              width: 330,
-              fit: BoxFit.contain,
+            right: 50,
+            bottom: 110,
+            child: Opacity(
+              opacity: 0.75,
+              child: Image.asset(
+                'assets/images/diffiv.jpg',
+                width: 300,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
-          // البطاقة الرئيسية في المنتصف
-          Align(
-            alignment: Alignment.center,
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 22),
+
+          // ── المحتوى الرئيسي ──
+          SafeArea(
+            child: Padding(
               padding: const EdgeInsets.symmetric(
-                horizontal: 22,
-                vertical: 22,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.75),
-                borderRadius: BorderRadius.circular(22),
+                horizontal: AppDimensions.screenPaddingH,
+                vertical: AppDimensions.screenPaddingV,
               ),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Remaining %',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF20375C),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  // الرقم الكبير — لونه يتغير حسب النسبة
-                  Text(
-                    '${remaining.toStringAsFixed(0)}%',
-                    style: TextStyle(
-                      fontSize: 60,
-                      fontWeight: FontWeight.w900,
-                      color: color,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  // شريط التقدم (Progress Bar)
-                  // عرضه الكلي 220px × نسبة المتبقي = العرض الملوّن
-                  Container(
-                    width: 220,
-                    height: 18,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4),
-                      color: Colors.grey.shade300,
-                    ),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Container(
-                        width: 220 * (remaining.clamp(0, 100) / 100),
+                  const SizedBox(height: 50), // مساحة لزر Logout
+
+                  // ── الهيدر: حالة + غرفة ──
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // badge الحالة — يتغير لون وأيقونة حسب النسبة
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimensions.spaceMD,
+                          vertical: AppDimensions.spaceSM,
+                        ),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          color: color,
+                          color: bgColor,
+                          borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+                          border: Border.all(color: color.withOpacity(0.3), width: 1.2),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(icon, color: color, size: 16),
+                            const SizedBox(width: 6),
+                            Text(
+                              label,
+                              style: AppTextStyles.labelLarge.copyWith(
+                                color: color,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+
+                      // badge رقم الغرفة
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimensions.spaceMD,
+                          vertical: AppDimensions.spaceSM,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+                          border: Border.all(color: AppColors.border, width: 1.2),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.meeting_room_rounded,
+                              color: Color(0xFF7C3AED),
+                              size: 16,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Room $room',
+                              style: AppTextStyles.labelLarge.copyWith(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: AppDimensions.spaceXL),
+
+                  // ── البطاقة الرئيسية ──
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppDimensions.spaceLG,
+                      vertical: AppDimensions.spaceXL,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(AppDimensions.radiusXL),
+                      border: Border.all(color: AppColors.border, width: 1.2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.07),
+                          blurRadius: 20,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        // عنوان
+                        Text(
+                          'Remaining',
+                          style: AppTextStyles.headlineSmall.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+
+                        const SizedBox(height: AppDimensions.spaceMD),
+
+                        // الرقم الكبير — لونه يتغير حسب النسبة
+                        Text(
+                          '${remaining.toStringAsFixed(0)}%',
+                          style: AppTextStyles.monitorDisplay.copyWith(
+                            color: color,
+                            fontSize: 80,
+                          ),
+                        ),
+
+                        const SizedBox(height: AppDimensions.spaceLG),
+
+                        // شريط التقدم
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+                          child: LinearProgressIndicator(
+                            value: remaining.clamp(0, 100) / 100,
+                            minHeight: 14,
+                            backgroundColor: AppColors.surfaceVariant,
+                            valueColor: AlwaysStoppedAnimation<Color>(color),
+                          ),
+                        ),
+
+                        const SizedBox(height: AppDimensions.spaceSM),
+
+                        // labels أطراف الشريط
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('0%', style: AppTextStyles.bodySmall),
+                            Text('100%', style: AppTextStyles.bodySmall),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
+
+                  const Spacer(),
                 ],
               ),
             ),
+          ),
+
+          // ── زر Logout العائم ──
+          Positioned(
+            left: 16,
+            top: 16,
+            child: LogoutPill(onTap: onLogout),
           ),
         ],
       ),
