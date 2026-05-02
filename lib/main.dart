@@ -437,6 +437,7 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
         capacityMl: selectedCapacityMl ?? 0,
         groupIndex: selectedGroupIndex ?? 0,
         fluid: selectedFluid ?? '',
+        room: roomCtrl.text,
         espBaseUrl: espBaseUrl,
         isSending: _sending,
         onSend: _sendSetupToEsp,

@@ -10,23 +10,115 @@ class SummaryScreen extends StatelessWidget {
   final int capacityMl;
   final int groupIndex;
   final String fluid;
+  final String room;
   final String espBaseUrl;
   final bool isSending;
   final VoidCallback onSend;
   final VoidCallback onBack;
   final VoidCallback onLogout;
 
+
   const SummaryScreen({
     super.key,
     required this.capacityMl,
     required this.groupIndex,
     required this.fluid,
+    required this.room,
     required this.espBaseUrl,
     required this.isSending,
     required this.onSend,
     required this.onBack,
     required this.onLogout,
   });
+
+  // ── Confirmation Dialog قبل الإرسال ──
+  // يظهر عند الضغط على Send — الممرضة لازم تؤكد قبل الإرسال للجهاز
+  void _showConfirmDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDimensions.radiusXL),
+        ),
+        backgroundColor: AppColors.surface,
+        // ── أيقونة التأكيد ──
+        icon: Container(
+          width: 52,
+          height: 52,
+          decoration: const BoxDecoration(
+            color: AppColors.accentLight,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.send_rounded,
+            color: AppColors.primary,
+            size: 26,
+          ),
+        ),
+        title: Text(
+          'Confirm Send',
+          textAlign: TextAlign.center,
+          style: AppTextStyles.headlineMedium.copyWith(
+            color: AppColors.textPrimary,
+          ),
+        ),
+        content: Text(
+          'Send setup to the device?\nRoom $room — $capacityMl mL',
+          textAlign: TextAlign.center,
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: AppColors.textSecondary,
+          ),
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actionsPadding: const EdgeInsets.only(
+          bottom: AppDimensions.spaceMD,
+          left: AppDimensions.spaceMD,
+          right: AppDimensions.spaceMD,
+        ),
+        actions: [
+          // ── زر Cancel ──
+          Expanded(
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(0, AppDimensions.buttonHeightMD),
+                side: const BorderSide(color: AppColors.border, width: 1.5),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+                ),
+              ),
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(
+                'Cancel',
+                style: AppTextStyles.buttonMedium.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: AppDimensions.spaceMD),
+          // ── زر Confirm ──
+          Expanded(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                minimumSize: const Size(0, AppDimensions.buttonHeightMD),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusFull),
+                ),
+                elevation: 0,
+              ),
+              onPressed: () {
+                Navigator.of(ctx).pop(); // أغلق الـ dialog
+                onSend();                // نفّذ الإرسال
+              },
+              child: Text('Send', style: AppTextStyles.buttonMedium),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -164,6 +256,15 @@ class SummaryScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
+          // ── رقم الغرفة ──
+          _buildRow(
+            icon: Icons.meeting_room_rounded,
+            iconColor: const Color(0xFF7C3AED),
+            iconBg: const Color(0xFFEDE9FE),
+            label: 'Room',
+            value: '$room',
+            showDivider: true,
+          ),
           // ── السعة ──
           _buildRow(
             icon: Icons.water_drop_rounded,
