@@ -390,8 +390,11 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
     // ── step -2: شاشة رقم الغرفة ────────────────────────
     if (step == -2) {
       return RoomScreen(
-        onContinue: () => setState(() => step = 0),
-        onLogout: _appLogoutToIntroOnly,
+          onContinue: (room) => setState(() {
+            roomCtrl.text = room;
+            step = 0;
+          }),
+          onLogout : _appLogoutToIntroOnly,
       );
     }
 

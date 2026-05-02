@@ -5,8 +5,9 @@ import '../theme/app_theme.dart';
 import '../widgets/buttons.dart';
 
 class RoomScreen extends StatefulWidget {
-  final VoidCallback onContinue;
+  final void Function(String room) onContinue;
   final VoidCallback onLogout;
+
 
   const RoomScreen({
     super.key,
@@ -29,6 +30,7 @@ class _RoomScreenState extends State<RoomScreen> {
 
   void _submit() {
     final room = _roomCtrl.text.trim();
+    widget.onContinue(_roomCtrl.text.trim());
   //تحقق من الحقل وصحه معلومات الفيلد
     if (room.isEmpty) {
       _showMsg('Please enter room number');
@@ -46,7 +48,9 @@ class _RoomScreenState extends State<RoomScreen> {
       return;
     }
 
-    widget.onContinue();
+    widget.onContinue(
+      _roomCtrl.text.trim(),
+    );
   }
 
   void _showMsg(String msg) {

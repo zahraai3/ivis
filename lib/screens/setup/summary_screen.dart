@@ -162,7 +162,7 @@ class SummaryScreen extends StatelessWidget {
                     showBack: true,
                     showSend: true,
                     onBack: onBack,
-                    onSend: isSending ? () {} : onSend,
+                    onSend: isSending ? () {} : () => _showConfirmDialog(context),
                   ),
                   const SizedBox(height: AppDimensions.spaceSM),
                 ],
