@@ -18,6 +18,7 @@ import 'data/iv_data.dart';
 import 'widgets/buttons.dart';
 import 'widgets/input_field.dart';
 import 'widgets/header.dart';
+import 'services/esp_service.dart'; // ← طبقة HTTP الخام
 
 // ── نقطة البداية ──────────────────────────────────────────
 void main() {
@@ -88,10 +89,12 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
       step = -1;
     });
   }
+
   // ── عنوان جهاز ESP ─────────────────────────────────────
   // الجهاز يعمل كـ Access Point (نقطة WiFi)
   // والتطبيق يتصل فيه مباشرة على هذا الـ IP الثابت
-  static const String espBaseUrl = 'http://192.168.4.1';
+  // ← الآن يُقرأ من EspService مباشرة بدل تعريفه هنا
+  static String get espBaseUrl => EspService.baseUrl;
 
   // ── متغيرات الحالة ──────────────────────────────────────
   bool _sending = false; // true = جاري الإرسال للجهاز (نمنع الضغط مرتين)
@@ -107,8 +110,7 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
   // TextEditingController يربط الـ TextField بالكود
   // ونقدر نقرأ/نمسح القيمة منه في أي وقت
   final TextEditingController nurseNameCtrl = TextEditingController();
-  final TextEditingController nursePhoneCtrl =
-  TextEditingController();
+  final TextEditingController nursePhoneCtrl = TextEditingController();
   final TextEditingController roomCtrl = TextEditingController();
 
   String nurseFullPhone = '';
@@ -128,10 +130,7 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
   // نرسل للجهاز إشعار إنها شافت التحذير (ACK = Acknowledge)
   // حالياً معلّق لأننا في وضع المحاكاة
   Future<void> _sendAck10() async {
-    // try {
-    //   final uri = Uri.parse('$espBaseUrl/ack10');
-    //   await http.post(uri).timeout(const Duration(seconds: 3));
-    // } catch (_) {}
+    await EspService.sendAck10(); // ← انتقل لـ EspService
   }
 
   // ── عرض تحذير وصول السيروم لـ 10% ─────────────────────
@@ -167,28 +166,9 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
   // تجلب: نسبة المتبقي % + هل الجهاز شغّال + هل في تحذير 10%
   Future<void> _fetchStatus() async {
     // ── وضع المحاكاة (Emulator Mode) ──
-    // الكود الحقيقي للجهاز معلّق بالتعليقات أدناه
-    // بدله نصنع بيانات وهمية للتجربة على المحاكي
-
-    // الكود الحقيقي (معلّق):
-    // try {
-    //   final uri = Uri.parse('$espBaseUrl/status');
-    //   final res = await http.get(uri).timeout(const Duration(seconds: 3));
-    //   if (res.statusCode != 200) return;
-    //   final data = jsonDecode(res.body);
-    //   ...
-    // } catch (_) {}
-
-    // بيانات وهمية للمحاكاة:
-    // كل ثانية تنقص remaining بـ 1 (لمحاكاة نزول السيروم)
-    final data = <String, dynamic>{
-      'need_setup': false, // false = مو محتاج إعادة إعداد
-      'reset': false, // false = مو محتاج إعادة تشغيل
-      'percent': remaining > 0 ? remaining - 1 : 75.0, // ينقص 1% كل ثانية
-      'running': true, // الجهاز شغّال
-      'alarm10_active': false, // مافي تحذير 10% الآن
-      'alarm10_ack': false, // ما أُرسل تأكيد
-    };
+    // الكود الحقيقي للجهاز معلّق بالتعليقات في EspService
+    // ← الآن يستدعي EspService.fetchStatus بدل الكود المباشر
+    final data = await EspService.fetchStatus(currentRemaining: remaining);
 
     // ── تحقق: هل الجهاز يطلب إعادة إعداد؟ ──
     // يصير هذا لو انقطع الاتصال أو أُعيد تشغيل الجهاز
@@ -390,11 +370,11 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
     // ── step -2: شاشة رقم الغرفة ────────────────────────
     if (step == -2) {
       return RoomScreen(
-          onContinue: (room) => setState(() {
-            roomCtrl.text = room;
-            step = 0;
-          }),
-          onLogout : _appLogoutToIntroOnly,
+        onContinue: (room) => setState(() {
+          roomCtrl.text = room;
+          step = 0;
+        }),
+        onLogout: _appLogoutToIntroOnly,
       );
     }
 
@@ -441,7 +421,7 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
         groupIndex: selectedGroupIndex ?? 0,
         fluid: selectedFluid ?? '',
         room: roomCtrl.text,
-        espBaseUrl: espBaseUrl,
+        espBaseUrl: espBaseUrl, // ← يقرأ من EspService.baseUrl
         isSending: _sending,
         onSend: _sendSetupToEsp,
         onBack: () => setState(() => step = 2),
@@ -466,7 +446,8 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
       if (!_running) _startLiveUpdates();
       return MonitorScreen(
         remaining: remaining,
-        onLogout: _appLogoutToIntroOnly, room: '',
+        onLogout: _appLogoutToIntroOnly,
+        room: '',
       );
     }
     // احتياطي: لو step بقيمة غير متوقعة
@@ -496,46 +477,36 @@ class _CodeySetupScreenState extends State<CodeySetupScreen> {
     if (key == _lastSetupKey) return;
     _lastSetupKey = key;
 
-    // البيانات التي سترسل للجهاز بصيغة JSON
-    final payload = {
-      'capacity_ml': cap, // سعة الكيس
-      'group': selectedGroupNum, // رقم المجموعة
-      'item': selectedItemNum, // رقم السائل داخل المجموعة
-      'room': room, // رقم الغرفة
-    };
-
-    // الكود الحقيقي للإرسال (معلّق - وضع المحاكاة):
-    // final uri = Uri.parse('$espBaseUrl/setup');
-
     setState(() => _sending = true); // أظهر حالة الإرسال (يعطّل زر Send)
 
-    // محاكاة تأخير الإرسال (500ms بدل الطلب الحقيقي):
-    // try {
-    //   final res = await http.post(
-    //     uri,
-    //     headers: {'Content-Type': 'application/json'},
-    //     body: jsonEncode(payload),
-    //   ).timeout(const Duration(seconds: 3));
-    //   if (res.statusCode == 200) { ... } else { ... }
-    // } catch (e) { _showMsg('Error sending: $e'); }
-    // finally { if (mounted) setState(() => _sending = false); }
+    // ← الآن يستدعي EspService.sendSetup بدل الكود المباشر
+    final success = await EspService.sendSetup(
+      capacityMl: cap,
+      groupNum: selectedGroupNum!,
+      itemNum: selectedItemNum!,
+      room: room,
+    );
 
-    await Future.delayed(const Duration(milliseconds: 500));
+    if (success) {
+      _showMsg('Sent ✅');
 
-    _showMsg('Sent ✅');
+      // أعد تهيئة متغيرات التحذير لبداية جلسة جديدة
+      _alarm10DialogShown = false;
+      _ack10Shown = false;
 
-    // أعد تهيئة متغيرات التحذير لبداية جلسة جديدة
-    _alarm10DialogShown = false;
-    _ack10Shown = false;
+      // قيمة بداية وهمية للمحاكاة
+      remaining = 75.0;
 
-    // قيمة بداية وهمية للمحاكاة
-    remaining = 75.0;
-
-    if (mounted) {
-      setState(() {
-        _sending = false;
-        step = 4; // انتقل لشاشة الانتظار
-      });
+      if (mounted) {
+        setState(() {
+          _sending = false;
+          step = 4; // انتقل لشاشة الانتظار
+        });
+      }
+    } else {
+      _showMsg('Error sending. Try again.');
+      _lastSetupKey = ''; // أعد تفعيل الإرسال عند الفشل
+      if (mounted) setState(() => _sending = false);
     }
   }
 }
